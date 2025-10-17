@@ -1,0 +1,186 @@
+{% extends "hotel_app/base.html" %}
+
+{% block title %}Home - Liamy Hotel Reservation System{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="hero">
+    <h1>Welcome to Liamy Hotel</h1>
+    <p>Find your perfect room and book your stay with ease</p>
+</div>
+
+<!-- Search Box -->
+<div class="search-box">
+    <h3><i class="fas fa-search"></i> Search Rooms</h3>
+    <form method="get" action="{% url 'room_list' %}" class="needs-validation">
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label for="check_in" class="form-label">Check-In Date</label>
+                <input type="date" class="form-control" id="check_in" name="check_in" required>
+            </div>
+            <div class="col-md-6">
+                <label for="check_out" class="form-label">Check-Out Date</label>
+                <input type="date" class="form-control" id="check_out" name="check_out" required>
+            </div>
+            <div class="col-md-6">
+                <label for="room_type" class="form-label">Room Type</label>
+                <select class="form-control" id="room_type" name="room_type">
+                    <option value="">All Room Types</option>
+                    {% for rt in room_types %}
+                        <option value="{{ rt.id }}">{{ rt.name }} - ₱{{ rt.base_price }}/night</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label for="capacity" class="form-label">Guests</label>
+                <input type="number" class="form-control" id="capacity" name="capacity" min="1" max="8" value="1">
+            </div>
+            <div class="col-12">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="fas fa-search"></i> Search Rooms
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Featured Rooms -->
+<section class="mb-60">
+    <h2 class="mb-4"><i class="fas fa-star"></i> Featured Rooms</h2>
+    <div class="row g-4">
+        {% if featured_rooms %}
+            {% for room in featured_rooms %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100">
+                        {% if room.images.first %}
+                            <img src="{{ room.images.first.image.url }}" class="card-img-top" alt="{{ room }}">
+                        {% else %}
+                            <div class="card-img-top bg-light d-flex align-items-center justify-content-center">
+                                <i class="fas fa-image text-muted" style="font-size: 3rem;"></i>
+                            </div>
+                        {% endif %}
+                        <div class="card-body">
+                            <h5 class="card-title">{{ room.room_type.name }} - Room {{ room.room_number }}</h5>
+                            <p class="card-text text-muted">{{ room.room_type.description|truncatewords:15 }}</p>
+                            
+                            <div class="mb-3">
+                                <span class="badge bg-info">{{ room.room_type.capacity }} guests</span>
+                                <span class="badge bg-success">₱{{ room.room_type.base_price }}/night</span>
+                            </div>
+                            
+                            {% if room.room_type.amenities.all %}
+                                <div class="mb-3">
+                                    <small class="text-muted"><strong>Amenities:</strong></small>
+                                    <div>
+                                        {% for amenity in room.room_type.amenities.all|slice:":3" %}
+                                            <small class="badge bg-light text-dark">
+                                                <i class="fas fa-check-circle text-success"></i> {{ amenity.name }}
+                                            </small>
+                                        {% endfor %}
+                                        {% if room.room_type.amenities.count > 3 %}
+                                            <small class="badge bg-light text-dark">+{{ room.room_type.amenities.count|add:"-3" }} more</small>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="card-footer bg-transparent border-top">
+                            <a href="{% url 'room_detail' room.id %}" class="btn btn-sm btn-primary w-100">
+                                <i class="fas fa-eye"></i> View Details
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> No featured rooms available at the moment.
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Info Section -->
+<section class="py-5 bg-light rounded" style="margin-bottom: 40px;">
+    <div class="row text-center g-4">
+        <div class="col-md-4">
+            <div style="font-size: 2.5rem; color: var(--secondary); margin-bottom: 15px;">
+                <i class="fas fa-bed"></i>
+            </div>
+            <h5>Comfortable Rooms</h5>
+            <p>Wide selection of room types to suit your needs and budget.</p>
+        </div>
+        <div class="col-md-4">
+            <div style="font-size: 2.5rem; color: var(--secondary); margin-bottom: 15px;">
+                <i class="fas fa-lock"></i>
+            </div>
+            <h5>Secure Booking</h5>
+            <p>Your booking is secured with our reliable reservation system.</p>
+        </div>
+        <div class="col-md-4">
+            <div style="font-size: 2.5rem; color: var(--secondary); margin-bottom: 15px;">
+                <i class="fas fa-headset"></i>
+            </div>
+            <h5>24/7 Support</h5>
+            <p>Our team is always ready to assist you anytime.</p>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="bg-primary text-white p-5 rounded text-center">
+    <h3 class="mb-3">Ready to Book Your Stay?</h3>
+    <p class="mb-4">Browse our available rooms and make your reservation today!</p>
+    <a href="{% url 'room_list' %}" class="btn btn-light btn-lg">
+        <i class="fas fa-arrow-right"></i> Browse All Rooms
+    </a>
+</section>
+
+<script>
+    // Set minimum dates for date inputs
+    document.addEventListener('DOMContentLoaded', function() {
+        const today = new Date();
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        
+        const checkInInput = document.getElementById('check_in');
+        const checkOutInput = document.getElementById('check_out');
+        
+        checkInInput.min = tomorrow.toISOString().split('T')[0];
+        checkOutInput.min = tomorrow.toISOString().split('T')[0];
+        
+        // Set checkout to be at least 1 day after checkin
+        checkInInput.addEventListener('change', function() {
+            const checkInDate = new Date(this.value);
+            checkInDate.setDate(checkInDate.getDate() + 1);
+            checkOutInput.min = checkInDate.toISOString().split('T')[0];
+        });
+    });
+</script>
+
+<style>
+    .hero {
+        text-align: center;
+        padding: 60px 20px;
+    }
+    
+    .search-box {
+        max-width: 600px;
+        margin: -50px auto 40px;
+        position: relative;
+        z-index: 10;
+    }
+    
+    section h2 {
+        color: var(--primary);
+        font-weight: 700;
+        margin-bottom: 30px;
+    }
+    
+    .bg-primary {
+        background: linear-gradient(135deg, var(--secondary) 0%, #2980b9 100%) !important;
+    }
+</style>
+{% endblock %}

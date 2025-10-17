@@ -1,0 +1,144 @@
+{% extends "hotel_app/base.html" %}
+
+{% block title %}{{ room }} - Liamy Hotel{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-lg-8">
+        <!-- Main Gallery -->
+        <div class="mb-4">
+            {% if main_image %}
+                <img id="mainImage" src="{{ main_image.image.url }}" class="img-fluid rounded" style="height: 400px; object-fit: cover; width: 100%;">
+            {% elif room.images.first %}
+                <img id="mainImage" src="{{ room.images.first.image.url }}" class="img-fluid rounded" style="height: 400px; object-fit: cover; width: 100%;">
+            {% else %}
+                <div class="bg-light rounded d-flex align-items-center justify-content-center" style="height: 400px;">
+                    <i class="fas fa-image text-muted" style="font-size: 5rem;"></i>
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Thumbnail Gallery -->
+        {% if room.images.count > 1 %}
+            <div class="row g-2 mb-4">
+                {% for image in room.images.all %}
+                    <div class="col-3">
+                        <img src="{{ image.image.url }}" class="img-fluid rounded cursor-pointer" 
+                             onclick="changeMainImage('{{ image.image.url }}')"
+                             style="height: 100px; object-fit: cover; cursor: pointer; border: 3px solid transparent; transition: border 0.3s;">
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        
+        <!-- Room Description -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">About This Room</h5>
+                <p class="card-text">{{ room.room_type.description }}</p>
+                
+                {% if room.room_type.amenities.all %}
+                    <h6 class="mt-4 mb-3">Amenities</h6>
+                    <div>
+                        {% for amenity in room.room_type.amenities.all %}
+                            <div class="mb-2">
+                                <i class="fas fa-check-circle text-success"></i>
+                                <strong>{{ amenity.name }}</strong>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Sidebar - Booking Info -->
+    <div class="col-lg-4">
+        <div class="card sticky-top" style="top: 80px;">
+            <div class="card-body">
+                <h5 class="card-title mb-4">{{ room.room_type.name }}</h5>
+                
+                <!-- Price Info -->
+                <div class="mb-4 p-3 bg-light rounded">
+                    {% if seasonal_rate %}
+                        <div class="mb-2">
+                            <small class="text-muted">Seasonal Rate</small>
+                            <h4 class="text-success mb-0">₱{{ current_price }}<span class="fs-6">/night</span></h4>
+                            <small class="text-muted">Regular: ₱{{ room.room_type.base_price }}/night</small>
+                        </div>
+                    {% else %}
+                        <h4 class="text-success mb-0">₱{{ current_price }}<span class="fs-6">/night</span></h4>
+                    {% endif %}
+                </div>
+                
+                <!-- Room Info -->
+                <div class="mb-3">
+                    <small class="text-muted">Room Details</small>
+                    <div class="mt-2">
+                        <p class="mb-2">
+                            <i class="fas fa-door-open text-secondary"></i>
+                            <strong>Room Number:</strong> {{ room.room_number }}
+                        </p>
+                        <p class="mb-2">
+                            <i class="fas fa-users text-secondary"></i>
+                            <strong>Capacity:</strong> {{ room.room_type.capacity }} guests
+                        </p>
+                        <p class="mb-2">
+                            <i class="fas fa-building text-secondary"></i>
+                            <strong>Floor:</strong> {{ room.floor|default:"N/A" }}
+                        </p>
+                        <p class="mb-2">
+                            <span class="badge" style="background-color: #d4edda; color: #155724;">
+                                <i class="fas fa-check-circle"></i> Available
+                            </span>
+                        </p>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <!-- Booking Button -->
+                {% if user.is_authenticated %}
+                    <a href="{% url 'create_booking' room.id %}" class="btn btn-primary w-100 btn-lg">
+                        <i class="fas fa-calendar-check"></i> Book Now
+                    </a>
+                {% else %}
+                    <a href="{% url 'login' %}?next={% url 'create_booking' room.id %}" class="btn btn-primary w-100 btn-lg">
+                        <i class="fas fa-sign-in-alt"></i> Login to Book
+                    </a>
+                    <p class="text-center mt-3 text-muted">
+                        <small>Don't have an account? <a href="{% url 'register' %}">Register here</a></small>
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function changeMainImage(src) {
+        document.getElementById('mainImage').src = src;
+    }
+</script>
+
+<style>
+    .cursor-pointer {
+        cursor: pointer;
+    }
+    
+    .cursor-pointer:hover {
+        border-color: var(--secondary) !important;
+    }
+    
+    .sticky-top {
+        z-index: 100;
+    }
+    
+    @media (max-width: 991px) {
+        .sticky-top {
+            position: static;
+            top: auto;
+        }
+    }
+</style>
+{% endblock %}
